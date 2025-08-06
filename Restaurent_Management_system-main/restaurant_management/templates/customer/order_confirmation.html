@@ -1,0 +1,139 @@
+{% extends 'customer/base_customer.html' %}
+
+{% block title %}Order Confirmation - Delicious Restaurant{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Success Message -->
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
+            <i class="fas fa-check text-3xl text-green-600"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Order Confirmed!</h1>
+        <p class="text-gray-600">Thank you for your order. We're preparing your delicious meal.</p>
+    </div>
+
+    <!-- Order Details -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+        <div class="bg-primary text-white p-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold">Order #{{ order.order_number }}</h2>
+                    <p class="opacity-90">{{ order.created_at|date:"F d, Y - g:i A" }}</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold">${{ order.total_amount }}</div>
+                    <div class="opacity-90">{{ order.get_order_type_display }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <!-- Customer Information -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Customer Details</h3>
+                    <div class="space-y-2 text-gray-600">
+                        <p><i class="fas fa-user mr-2 text-primary"></i> {{ order.customer_name }}</p>
+                        <p><i class="fas fa-envelope mr-2 text-primary"></i> {{ order.customer_email }}</p>
+                        <p><i class="fas fa-phone mr-2 text-primary"></i> {{ order.customer_phone }}</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Order Information</h3>
+                    <div class="space-y-2 text-gray-600">
+                        <p><i class="fas fa-clock mr-2 text-primary"></i> Status: <span class="font-semibold text-green-600">{{ order.get_status_display }}</span></p>
+                        <p><i class="fas fa-{{ order.order_type == 'dine_in'|yesno:'utensils,shopping-bag' }} mr-2 text-primary"></i> {{ order.get_order_type_display }}</p>
+                        {% if order.table_number %}
+                            <p><i class="fas fa-table mr-2 text-primary"></i> Table {{ order.table_number }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Items -->
+            <div class="border-t pt-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Order Items</h3>
+                <div class="space-y-3">
+                    {% for item in order_items %}
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                {% if item.menu_item.image %}
+                                    <img src="{{ item.menu_item.image.url }}" alt="{{ item.menu_item.name }}" 
+                                         class="w-12 h-12 rounded-lg object-cover">
+                                {% else %}
+                                    <div class="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                                        <i class="fas fa-image text-gray-400"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">{{ item.menu_item.name }}</h4>
+                                    <p class="text-sm text-gray-600">{{ item.quantity }}x ${{ item.price_at_time }}</p>
+                                </div>
+                            </div>
+                            <span class="font-bold text-gray-800">${{ item.subtotal }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Special Instructions -->
+            {% if order.notes %}
+                <div class="border-t pt-6 mt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Special Instructions</h3>
+                    <p class="text-gray-600 bg-gray-50 p-3 rounded-lg">{{ order.notes }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Estimated Time & Next Steps -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-green-50 rounded-xl p-6">
+            <div class="flex items-center mb-3">
+                <i class="fas fa-clock text-2xl text-green-600 mr-3"></i>
+                <h3 class="text-lg font-semibold text-green-800">Estimated Time</h3>
+            </div>
+            <p class="text-green-700 mb-2">Your order will be ready in:</p>
+            <p class="text-2xl font-bold text-green-800">15-25 minutes</p>
+        </div>
+        
+        <div class="bg-blue-50 rounded-xl p-6">
+            <div class="flex items-center mb-3">
+                <i class="fas fa-info-circle text-2xl text-blue-600 mr-3"></i>
+                <h3 class="text-lg font-semibold text-blue-800">What's Next?</h3>
+            </div>
+            {% if order.order_type == 'dine_in' %}
+                <p class="text-blue-700">Please take a seat and we'll bring your order to your table when ready.</p>
+            {% else %}
+                <p class="text-blue-700">We'll prepare your order for pickup. Please wait for our call or come back in 15-25 minutes.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="{% url 'customer:track_order' %}?order_number={{ order.order_number }}" 
+           class="bg-primary text-white py-3 px-6 rounded-lg font-semibold text-center hover:bg-orange-600 transition-colors">
+            <i class="fas fa-search mr-2"></i>
+            Track This Order
+        </a>
+        <a href="{% url 'customer:menu' %}" 
+           class="bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-semibold text-center hover:bg-gray-300 transition-colors">
+            <i class="fas fa-utensils mr-2"></i>
+            Order More Items
+        </a>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="mt-12 bg-gray-50 rounded-xl p-6 text-center">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Need Help?</h3>
+        <p class="text-gray-600 mb-4">If you have any questions about your order, please contact us:</p>
+        <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-6">
+            <p class="text-gray-700"><i class="fas fa-phone mr-2 text-primary"></i> +1 (555) 123-4567</p>
+            <p class="text-gray-700"><i class="fas fa-envelope mr-2 text-primary"></i> info@delicious.com</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

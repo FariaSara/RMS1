@@ -1,0 +1,184 @@
+{% extends 'customer/base_customer.html' %}
+
+{% block title %}Menu - Delicious Restaurant{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-restaurant py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-4xl md:text-6xl font-bold text-gray-800 mb-4 fade-in-up">
+            Our Delicious Menu
+        </h1>
+        <p class="text-xl text-gray-700 mb-8 fade-in-up">
+            Discover our carefully crafted dishes made with the finest ingredients
+        </p>
+        <div class="fade-in-up">
+            <i class="fas fa-star text-yellow-500 text-2xl mx-1"></i>
+            <i class="fas fa-star text-yellow-500 text-2xl mx-1"></i>
+            <i class="fas fa-star text-yellow-500 text-2xl mx-1"></i>
+            <i class="fas fa-star text-yellow-500 text-2xl mx-1"></i>
+            <i class="fas fa-star text-yellow-500 text-2xl mx-1"></i>
+            <span class="text-gray-700 ml-2 text-lg">Rated 5/5 by our customers</span>
+        </div>
+    </div>
+</section>
+
+<!-- Category Tabs -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+    <div class="flex flex-wrap justify-center space-x-4 mb-8">
+        <button class="category-tab active px-6 py-3 text-lg font-medium" onclick="showCategory('all')">
+            All Items
+        </button>
+        {% for category, items in menu_data.items %}
+            <button class="category-tab px-6 py-3 text-lg font-medium" onclick="showCategory('{{ category.category_type }}')">
+                {{ category.name }}
+            </button>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Menu Items -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    {% for category, items in menu_data.items %}
+        <div class="category-section" data-category="{{ category.category_type }}">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2 flex items-center">
+                    {% if category.category_type == 'appetizer' %}
+                        <i class="fas fa-leaf text-primary mr-3"></i>
+                    {% elif category.category_type == 'main_course' %}
+                        <i class="fas fa-drumstick-bite text-primary mr-3"></i>
+                    {% elif category.category_type == 'soup' %}
+                        <i class="fas fa-soup text-primary mr-3"></i>
+                    {% elif category.category_type == 'dessert' %}
+                        <i class="fas fa-ice-cream text-primary mr-3"></i>
+                    {% elif category.category_type == 'beverage' %}
+                        <i class="fas fa-coffee text-primary mr-3"></i>
+                    {% else %}
+                        <i class="fas fa-utensils text-primary mr-3"></i>
+                    {% endif %}
+                    {{ category.name }}
+                </h2>
+                <p class="text-gray-600 mb-6">{{ category.description }}</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for item in items %}
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover smooth-transition">
+                            <div class="relative">
+                                {% if item.image %}
+                                    <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-full h-48 object-cover food-image">
+                                {% else %}
+                                    <div class="w-full h-48 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                                        <i class="fas fa-image text-gray-400 text-4xl"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if not item.is_available %}
+                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                        <span class="text-white font-bold text-lg">Out of Stock</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="p-6">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ item.name }}</h3>
+                                <p class="text-gray-600 mb-4 text-sm">{{ item.description|default:"Fresh and delicious!" }}</p>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span class="text-2xl font-bold text-primary">${{ item.price }}</span>
+                                    
+                                    {% if item.is_available %}
+                                        <div class="flex items-center space-x-2">
+                                            <div class="flex items-center border rounded-lg">
+                                                <button onclick="decreaseQuantity({{ item.id }})" class="px-3 py-1 text-gray-600 hover:text-primary">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                                <input type="number" id="quantity-{{ item.id }}" value="1" min="1" 
+                                                       class="w-12 text-center border-0 focus:ring-0" readonly>
+                                                <button onclick="increaseQuantity({{ item.id }})" class="px-3 py-1 text-gray-600 hover:text-primary">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                            <button onclick="addToCartWithQuantity({{ item.id }})" 
+                                                    class="btn-primary text-white px-4 py-2 rounded-lg font-medium">
+                                                <i class="fas fa-cart-plus mr-1"></i>
+                                                Add to Cart
+                                            </button>
+                                        </div>
+                                    {% else %}
+                                        <button disabled class="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg font-medium cursor-not-allowed">
+                                            Out of Stock
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="text-center py-16">
+            <i class="fas fa-utensils text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-2xl font-semibold text-gray-600 mb-2">No Menu Items Available</h3>
+            <p class="text-gray-500">Please check back later for our delicious offerings!</p>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Floating Cart Summary -->
+{% if cart and cart.total_items > 0 %}
+<div class="fixed bottom-4 right-4 bg-primary text-white rounded-full p-4 shadow-lg z-40">
+    <div class="flex items-center space-x-3">
+        <div class="text-sm">
+            <div class="font-semibold">{{ cart.total_items }} item{{ cart.total_items|pluralize }}</div>
+            <div>${{ cart.total_amount }}</div>
+        </div>
+        <a href="{% url 'customer:cart' %}" class="bg-white text-primary px-4 py-2 rounded-full font-semibold hover:bg-gray-100 smooth-transition">
+            View Cart
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Category filtering
+    function showCategory(categoryType) {
+        const tabs = document.querySelectorAll('.category-tab');
+        const sections = document.querySelectorAll('.category-section');
+        
+        // Update active tab
+        tabs.forEach(tab => tab.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        // Show/hide sections
+        sections.forEach(section => {
+            if (categoryType === 'all' || section.dataset.category === categoryType) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        });
+    }
+    
+    // Quantity controls
+    function increaseQuantity(itemId) {
+        const input = document.getElementById(`quantity-${itemId}`);
+        input.value = parseInt(input.value) + 1;
+    }
+    
+    function decreaseQuantity(itemId) {
+        const input = document.getElementById(`quantity-${itemId}`);
+        if (parseInt(input.value) > 1) {
+            input.value = parseInt(input.value) - 1;
+        }
+    }
+    
+    // Add to cart with quantity
+    function addToCartWithQuantity(itemId) {
+        const quantity = parseInt(document.getElementById(`quantity-${itemId}`).value);
+        addToCart(itemId, quantity);
+    }
+</script>
+{% endblock %}

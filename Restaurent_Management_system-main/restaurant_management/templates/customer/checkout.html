@@ -1,0 +1,238 @@
+{% extends 'customer/base_customer.html' %}
+
+{% block title %}Checkout - Delicious Restaurant{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+            <i class="fas fa-credit-card text-primary mr-3"></i>
+            Checkout
+        </h1>
+        <p class="text-gray-600">Please review your order and provide your details</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Order Form -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Customer Information</h2>
+            
+            <form method="post" id="checkout-form">
+                {% csrf_token %}
+                
+                <!-- Customer Details -->
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label for="customer_name" class="block text-sm font-medium text-gray-700 mb-2">
+                            Full Name *
+                        </label>
+                        <input type="text" id="customer_name" name="customer_name" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label for="customer_email" class="block text-sm font-medium text-gray-700 mb-2">
+                            Email Address *
+                        </label>
+                        <input type="email" id="customer_email" name="customer_email" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label for="customer_phone" class="block text-sm font-medium text-gray-700 mb-2">
+                            Phone Number *
+                        </label>
+                        <input type="tel" id="customer_phone" name="customer_phone" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                    </div>
+                </div>
+                
+                <!-- Order Type -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Order Type</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="relative">
+                            <input type="radio" name="order_type" value="dine_in" checked
+                                   class="sr-only peer">
+                            <div class="p-4 border-2 border-gray-300 rounded-lg cursor-pointer peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white transition-all">
+                                <div class="text-center">
+                                    <i class="fas fa-utensils text-2xl mb-2"></i>
+                                    <p class="font-semibold">Dine In</p>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="relative">
+                            <input type="radio" name="order_type" value="takeaway"
+                                   class="sr-only peer">
+                            <div class="p-4 border-2 border-gray-300 rounded-lg cursor-pointer peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white transition-all">
+                                <div class="text-center">
+                                    <i class="fas fa-shopping-bag text-2xl mb-2"></i>
+                                    <p class="font-semibold">Takeaway</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Table Number (for dine in) -->
+                <div id="table-section" class="mb-6">
+                    <label for="table_number" class="block text-sm font-medium text-gray-700 mb-2">
+                        Preferred Table Number (Optional)
+                    </label>
+                    <input type="number" id="table_number" name="table_number" min="1"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <p class="text-sm text-gray-500 mt-1">Leave empty for any available table</p>
+                </div>
+                
+                <!-- Special Instructions -->
+                <div class="mb-6">
+                    <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+                        Special Instructions (Optional)
+                    </label>
+                    <textarea id="notes" name="notes" rows="3"
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                              placeholder="Any special requests or dietary requirements..."></textarea>
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" 
+                        class="w-full btn-primary text-white py-4 px-6 rounded-lg font-semibold text-lg">
+                    <i class="fas fa-check mr-2"></i>
+                    Place Order
+                </button>
+            </form>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Order Summary</h2>
+            
+            <!-- Order Items -->
+            <div class="space-y-4 mb-6">
+                {% for item in cart_items %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            {% if item.menu_item.image %}
+                                <img src="{{ item.menu_item.image.url }}" alt="{{ item.menu_item.name }}" 
+                                     class="w-12 h-12 rounded-lg object-cover">
+                            {% else %}
+                                <div class="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                                    <i class="fas fa-image text-gray-400"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h4 class="font-semibold text-gray-800">{{ item.menu_item.name }}</h4>
+                                <p class="text-sm text-gray-600">{{ item.quantity }}x ${{ item.menu_item.price }}</p>
+                            </div>
+                        </div>
+                        <span class="font-bold text-gray-800">${{ item.subtotal }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Order Totals -->
+            <div class="border-t pt-4 space-y-2">
+                <div class="flex justify-between text-gray-600">
+                    <span>Subtotal:</span>
+                    <span>${{ cart.total_amount }}</span>
+                </div>
+                <div class="flex justify-between text-gray-600">
+                    <span>Tax (0%):</span>
+                    <span>$0.00</span>
+                </div>
+                <div class="flex justify-between text-xl font-bold text-gray-800 pt-2 border-t">
+                    <span>Total:</span>
+                    <span class="text-primary">${{ cart.total_amount }}</span>
+                </div>
+            </div>
+            
+            <!-- Payment Info -->
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                    <span class="font-semibold text-blue-800">Payment Information</span>
+                </div>
+                <p class="text-sm text-blue-700">
+                    Payment will be collected at the restaurant. You can pay by cash or card when you pick up your order or when served at your table.
+                </p>
+            </div>
+            
+            <!-- Estimated Time -->
+            <div class="mt-4 p-4 bg-green-50 rounded-lg">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-clock text-green-500 mr-2"></i>
+                    <span class="font-semibold text-green-800">Estimated Preparation Time</span>
+                </div>
+                <p class="text-sm text-green-700">
+                    Your order will be ready in approximately 15-25 minutes.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Show/hide table number based on order type
+    document.addEventListener('DOMContentLoaded', function() {
+        const orderTypeInputs = document.querySelectorAll('input[name="order_type"]');
+        const tableSection = document.getElementById('table-section');
+        
+        orderTypeInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                if (this.value === 'dine_in') {
+                    tableSection.style.display = 'block';
+                } else {
+                    tableSection.style.display = 'none';
+                    document.getElementById('table_number').value = '';
+                }
+            });
+        });
+    });
+    
+    // Form validation
+    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+        const name = document.getElementById('customer_name').value.trim();
+        const email = document.getElementById('customer_email').value.trim();
+        const phone = document.getElementById('customer_phone').value.trim();
+        
+        if (!name || !email || !phone) {
+            e.preventDefault();
+            showNotification('Please fill in all required fields', 'error');
+            return;
+        }
+        
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            e.preventDefault();
+            showNotification('Please enter a valid email address', 'error');
+            return;
+        }
+        
+        // Phone validation (basic)
+        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+        if (!phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''))) {
+            e.preventDefault();
+            showNotification('Please enter a valid phone number', 'error');
+            return;
+        }
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        submitBtn.disabled = true;
+        
+        // Re-enable button if form submission fails
+        setTimeout(() => {
+            if (submitBtn.disabled) {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }, 10000);
+    });
+</script>
+{% endblock %}

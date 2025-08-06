@@ -1,0 +1,247 @@
+{% extends 'customer/base_customer.html' %}
+
+{% block title %}Track Order - Delicious Restaurant{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+            <i class="fas fa-search text-primary mr-3"></i>
+            Track Your Order
+        </h1>
+        <p class="text-gray-600">Enter your order number to check the status of your order</p>
+    </div>
+
+    <!-- Order Search Form -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <form method="get" class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1">
+                <label for="order_number" class="block text-sm font-medium text-gray-700 mb-2">
+                    Order Number
+                </label>
+                <input type="text" 
+                       id="order_number" 
+                       name="order_number" 
+                       value="{{ request.GET.order_number }}"
+                       placeholder="Enter your order number (e.g., ABC123)"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-center font-mono text-lg tracking-wider">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" 
+                        class="btn-primary text-white px-8 py-3 rounded-lg font-semibold whitespace-nowrap">
+                    <i class="fas fa-search mr-2"></i>
+                    Track Order
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if order %}
+        <!-- Order Found - Show Details -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+            <!-- Order Header -->
+            <div class="bg-primary text-white p-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold">Order #{{ order.order_number }}</h2>
+                        <p class="opacity-90">{{ order.created_at|date:"F d, Y - g:i A" }}</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold">${{ order.total_amount }}</div>
+                        <div class="opacity-90">{{ order.get_order_type_display }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Status -->
+            <div class="p-6">
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Order Status</h3>
+                    
+                    <!-- Status Timeline -->
+                    <div class="flex items-center justify-between relative">
+                        <div class="absolute top-4 left-0 right-0 h-1 bg-gray-200 z-0"></div>
+                        <div class="absolute top-4 left-0 h-1 bg-primary z-10 transition-all duration-500" 
+                             style="width: {% if order.status == 'pending' %}20%{% elif order.status == 'confirmed' %}40%{% elif order.status == 'preparing' %}60%{% elif order.status == 'ready' %}80%{% else %}100%{% endif %}"></div>
+                        
+                        <!-- Status Steps -->
+                        <div class="flex items-center justify-between w-full relative z-20">
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 rounded-full {% if order.status == 'pending' or order.status == 'confirmed' or order.status == 'preparing' or order.status == 'ready' or order.status == 'completed' %}bg-primary text-white{% else %}bg-gray-300 text-gray-600{% endif %} flex items-center justify-center mb-2">
+                                    <i class="fas fa-receipt text-sm"></i>
+                                </div>
+                                <span class="text-xs text-center">Order<br>Received</span>
+                            </div>
+                            
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 rounded-full {% if order.status == 'confirmed' or order.status == 'preparing' or order.status == 'ready' or order.status == 'completed' %}bg-primary text-white{% else %}bg-gray-300 text-gray-600{% endif %} flex items-center justify-center mb-2">
+                                    <i class="fas fa-check text-sm"></i>
+                                </div>
+                                <span class="text-xs text-center">Order<br>Confirmed</span>
+                            </div>
+                            
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 rounded-full {% if order.status == 'preparing' or order.status == 'ready' or order.status == 'completed' %}bg-primary text-white{% else %}bg-gray-300 text-gray-600{% endif %} flex items-center justify-center mb-2">
+                                    <i class="fas fa-fire text-sm"></i>
+                                </div>
+                                <span class="text-xs text-center">Being<br>Prepared</span>
+                            </div>
+                            
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 rounded-full {% if order.status == 'ready' or order.status == 'completed' %}bg-primary text-white{% else %}bg-gray-300 text-gray-600{% endif %} flex items-center justify-center mb-2">
+                                    <i class="fas fa-bell text-sm"></i>
+                                </div>
+                                <span class="text-xs text-center">Order<br>Ready</span>
+                            </div>
+                            
+                            <div class="flex flex-col items-center">
+                                <div class="w-8 h-8 rounded-full {% if order.status == 'completed' %}bg-primary text-white{% else %}bg-gray-300 text-gray-600{% endif %} flex items-center justify-center mb-2">
+                                    <i class="fas fa-utensils text-sm"></i>
+                                </div>
+                                <span class="text-xs text-center">Order<br>Complete</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Status Message -->
+                    <div class="mt-6 p-4 rounded-lg {% if order.status == 'pending' %}bg-yellow-50 border border-yellow-200{% elif order.status == 'confirmed' %}bg-blue-50 border border-blue-200{% elif order.status == 'preparing' %}bg-orange-50 border border-orange-200{% elif order.status == 'ready' %}bg-green-50 border border-green-200{% elif order.status == 'completed' %}bg-gray-50 border border-gray-200{% else %}bg-red-50 border border-red-200{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-{% if order.status == 'pending' %}clock{% elif order.status == 'confirmed' %}check{% elif order.status == 'preparing' %}fire{% elif order.status == 'ready' %}bell{% elif order.status == 'completed' %}check-circle{% else %}times{% endif %} text-2xl {% if order.status == 'pending' %}text-yellow-600{% elif order.status == 'confirmed' %}text-blue-600{% elif order.status == 'preparing' %}text-orange-600{% elif order.status == 'ready' %}text-green-600{% elif order.status == 'completed' %}text-gray-600{% else %}text-red-600{% endif %} mr-3"></i>
+                            <div>
+                                <h4 class="font-semibold {% if order.status == 'pending' %}text-yellow-800{% elif order.status == 'confirmed' %}text-blue-800{% elif order.status == 'preparing' %}text-orange-800{% elif order.status == 'ready' %}text-green-800{% elif order.status == 'completed' %}text-gray-800{% else %}text-red-800{% endif %}">
+                                    {% if order.status == 'pending' %}Order Received
+                                    {% elif order.status == 'confirmed' %}Order Confirmed
+                                    {% elif order.status == 'preparing' %}Being Prepared
+                                    {% elif order.status == 'ready' %}Order Ready!
+                                    {% elif order.status == 'completed' %}Order Completed
+                                    {% else %}Order Cancelled
+                                    {% endif %}
+                                </h4>
+                                <p class="{% if order.status == 'pending' %}text-yellow-700{% elif order.status == 'confirmed' %}text-blue-700{% elif order.status == 'preparing' %}text-orange-700{% elif order.status == 'ready' %}text-green-700{% elif order.status == 'completed' %}text-gray-700{% else %}text-red-700{% endif %}">
+                                    {% if order.status == 'pending' %}We've received your order and will confirm it shortly.
+                                    {% elif order.status == 'confirmed' %}Your order has been confirmed and our chefs are getting ready to prepare it.
+                                    {% elif order.status == 'preparing' %}Our chefs are working hard to prepare your delicious meal.
+                                    {% elif order.status == 'ready' %}Your order is ready! {% if order.order_type == 'dine_in' %}We'll bring it to your table shortly.{% else %}Please come to pick it up.{% endif %}
+                                    {% elif order.status == 'completed' %}Your order has been completed. Thank you for dining with us!
+                                    {% else %}Your order has been cancelled. Please contact us if you have any questions.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 border-t pt-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Customer Details</h3>
+                        <div class="space-y-2 text-gray-600">
+                            <p><i class="fas fa-user mr-2 text-primary"></i> {{ order.customer_name }}</p>
+                            <p><i class="fas fa-envelope mr-2 text-primary"></i> {{ order.customer_email }}</p>
+                            <p><i class="fas fa-phone mr-2 text-primary"></i> {{ order.customer_phone }}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Order Information</h3>
+                        <div class="space-y-2 text-gray-600">
+                            <p><i class="fas fa-{{ order.order_type == 'dine_in'|yesno:'utensils,shopping-bag' }} mr-2 text-primary"></i> {{ order.get_order_type_display }}</p>
+                            {% if order.table_number %}
+                                <p><i class="fas fa-table mr-2 text-primary"></i> Table {{ order.table_number }}</p>
+                            {% endif %}
+                            <p><i class="fas fa-credit-card mr-2 text-primary"></i> Total: ${{ order.total_amount }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Order Items</h3>
+                    <div class="space-y-3">
+                        {% for item in order_items %}
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    {% if item.menu_item.image %}
+                                        <img src="{{ item.menu_item.image.url }}" alt="{{ item.menu_item.name }}" 
+                                             class="w-12 h-12 rounded-lg object-cover">
+                                    {% else %}
+                                        <div class="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">{{ item.menu_item.name }}</h4>
+                                        <p class="text-sm text-gray-600">{{ item.quantity }}x ${{ item.price_at_time }}</p>
+                                    </div>
+                                </div>
+                                <span class="font-bold text-gray-800">${{ item.subtotal }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Special Instructions -->
+                {% if order.notes %}
+                    <div class="border-t pt-6 mt-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Special Instructions</h3>
+                        <p class="text-gray-600 bg-gray-50 p-3 rounded-lg">{{ order.notes }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button onclick="location.reload()" 
+                    class="bg-primary text-white py-3 px-6 rounded-lg font-semibold text-center hover:bg-orange-600 transition-colors">
+                <i class="fas fa-refresh mr-2"></i>
+                Refresh Status
+            </button>
+            <a href="{% url 'customer:menu' %}" 
+               class="bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-semibold text-center hover:bg-gray-300 transition-colors">
+                <i class="fas fa-utensils mr-2"></i>
+                Order More Items
+            </a>
+        </div>
+
+    {% elif request.GET.order_number %}
+        <!-- Order Not Found -->
+        <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+            <i class="fas fa-search text-6xl text-gray-300 mb-6"></i>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Order Not Found</h2>
+            <p class="text-gray-600 mb-8">We couldn't find an order with the number "{{ request.GET.order_number }}". Please check your order number and try again.</p>
+            <div class="text-sm text-gray-500">
+                <p>Order numbers are typically 6 characters long (e.g., ABC123)</p>
+                <p>Make sure you've entered the correct order number from your confirmation</p>
+            </div>
+        </div>
+    {% else %}
+        <!-- Instructions -->
+        <div class="bg-blue-50 rounded-xl p-6 text-center">
+            <i class="fas fa-info-circle text-3xl text-blue-600 mb-4"></i>
+            <h3 class="text-xl font-semibold text-blue-800 mb-3">How to Track Your Order</h3>
+            <div class="text-blue-700 space-y-2">
+                <p>1. Enter your 6-digit order number in the search box above</p>
+                <p>2. Click "Track Order" to see your order status</p>
+                <p>3. Your order number can be found in your confirmation email or receipt</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh every 30 seconds if order is being prepared
+    {% if order and order.status in 'pending,confirmed,preparing' %}
+        setTimeout(function() {
+            location.reload();
+        }, 30000);
+    {% endif %}
+    
+    // Format order number input
+    document.getElementById('order_number').addEventListener('input', function(e) {
+        this.value = this.value.toUpperCase();
+    });
+</script>
+{% endblock %}
