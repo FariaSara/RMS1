@@ -1,0 +1,218 @@
+{% extends 'customer/base_customer.html' %}
+
+{% block title %}Shopping Cart - Delicious Restaurant{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+            <i class="fas fa-shopping-cart text-primary mr-3"></i>
+            Your Cart
+        </h1>
+        <p class="text-gray-600">Review your order before proceeding to checkout</p>
+    </div>
+
+    {% if cart_items %}
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <!-- Cart Items -->
+            <div class="divide-y divide-gray-200">
+                {% for item in cart_items %}
+                    <div class="p-6 cart-item" data-item-id="{{ item.id }}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <!-- Item Image -->
+                                <div class="flex-shrink-0">
+                                    {% if item.menu_item.image %}
+                                        <img src="{{ item.menu_item.image.url }}" alt="{{ item.menu_item.name }}" 
+                                             class="w-16 h-16 rounded-lg object-cover">
+                                    {% else %}
+                                        <div class="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Item Details -->
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-semibold text-gray-800">{{ item.menu_item.name }}</h3>
+                                    <p class="text-gray-600 text-sm">{{ item.menu_item.description|truncatewords:10 }}</p>
+                                    <p class="text-lg font-bold text-primary mt-1">${{ item.menu_item.price }} each</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-4">
+                                <!-- Quantity Controls -->
+                                <div class="flex items-center border border-gray-300 rounded-lg">
+                                    <button onclick="updateCartQuantity({{ item.id }}, {{ item.quantity|add:'-1' }})" 
+                                            class="px-3 py-2 text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <span class="px-4 py-2 font-semibold text-gray-800 bg-gray-50">{{ item.quantity }}</span>
+                                    <button onclick="updateCartQuantity({{ item.id }}, {{ item.quantity|add:'1' }})" 
+                                            class="px-3 py-2 text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Subtotal -->
+                                <div class="text-right min-w-[80px]">
+                                    <p class="text-lg font-bold text-gray-800">${{ item.subtotal }}</p>
+                                </div>
+                                
+                                <!-- Remove Button -->
+                                <button onclick="removeFromCart({{ item.id }})" 
+                                        class="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Cart Summary -->
+            <div class="bg-gray-50 p-6 border-t">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-lg font-semibold text-gray-800">Total Items:</span>
+                    <span class="text-lg font-bold text-gray-800" id="total-items">{{ cart.total_items }}</span>
+                </div>
+                <div class="flex justify-between items-center text-xl font-bold text-gray-800 mb-6">
+                    <span>Total Amount:</span>
+                    <span class="text-primary" id="total-amount">${{ cart.total_amount }}</span>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="{% url 'customer:menu' %}" 
+                       class="flex-1 bg-gray-200 text-gray-800 text-center py-3 px-6 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Continue Shopping
+                    </a>
+                    <a href="{% url 'customer:checkout' %}" 
+                       class="flex-1 btn-primary text-white text-center py-3 px-6 rounded-lg font-semibold">
+                        <i class="fas fa-credit-card mr-2"></i>
+                        Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Empty Cart -->
+        <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+            <i class="fas fa-shopping-cart text-6xl text-gray-300 mb-6"></i>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Your cart is empty</h2>
+            <p class="text-gray-600 mb-8">Start adding some delicious items to your cart!</p>
+            <a href="{% url 'customer:menu' %}" 
+               class="btn-primary text-white py-3 px-8 rounded-lg font-semibold inline-block">
+                <i class="fas fa-utensils mr-2"></i>
+                Browse Menu
+            </a>
+        </div>
+    {% endif %}
+    
+    <!-- Suggested Items (if cart is not empty) -->
+    {% if cart_items %}
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">You might also like</h2>
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <p class="text-gray-600 text-center">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                    Don't forget to add drinks or desserts to complete your meal!
+                </p>
+                <div class="flex justify-center mt-4">
+                    <a href="{% url 'customer:menu' %}" class="text-primary hover:text-orange-600 font-semibold">
+                        Browse More Items <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateCartQuantity(cartItemId, newQuantity) {
+        if (newQuantity < 0) return;
+        
+        fetch('{% url "customer:update_cart_item" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                cart_item_id: cartItemId,
+                quantity: newQuantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (newQuantity === 0) {
+                    // Remove the item from the DOM
+                    document.querySelector(`[data-item-id="${cartItemId}"]`).remove();
+                    
+                    // Check if cart is now empty
+                    if (data.cart_items_count === 0) {
+                        location.reload();
+                    }
+                } else {
+                    // Update the quantity display and subtotal
+                    location.reload(); // Simple reload for now
+                }
+                
+                // Update cart totals
+                document.getElementById('total-items').textContent = data.cart_items_count;
+                document.getElementById('total-amount').textContent = '$' + data.cart_total;
+                document.getElementById('cart-badge').textContent = data.cart_items_count;
+                
+                showNotification(data.message, 'success');
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error updating cart', 'error');
+        });
+    }
+    
+    function removeFromCart(cartItemId) {
+        if (!confirm('Are you sure you want to remove this item from your cart?')) {
+            return;
+        }
+        
+        fetch('{% url "customer:remove_from_cart" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                cart_item_id: cartItemId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the item from the DOM
+                document.querySelector(`[data-item-id="${cartItemId}"]`).remove();
+                
+                // Update cart totals
+                document.getElementById('total-items').textContent = data.cart_items_count;
+                document.getElementById('total-amount').textContent = '$' + data.cart_total;
+                document.getElementById('cart-badge').textContent = data.cart_items_count;
+                
+                // Check if cart is now empty
+                if (data.cart_items_count === 0) {
+                    location.reload();
+                }
+                
+                showNotification(data.message, 'success');
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error removing item', 'error');
+        });
+    }
+</script>
+{% endblock %}

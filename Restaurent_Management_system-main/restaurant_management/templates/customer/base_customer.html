@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Our Restaurant{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#f59e0b',
+                        secondary: '#ef4444',
+                        accent: '#10b981',
+                        dark: '#1f2937',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        /* Smooth transitions */
+        .smooth-transition {
+            transition: all 0.3s ease;
+        }
+        
+        /* Card hover effects */
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Button effects */
+        .btn-primary {
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.4);
+        }
+        
+        /* Cart badge animation */
+        .cart-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* Food item image effects */
+        .food-image {
+            transition: transform 0.3s ease;
+        }
+        
+        .food-image:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Background gradient */
+        .bg-restaurant {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #f59e0b 100%);
+        }
+        
+        /* Category tabs */
+        .category-tab {
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .category-tab.active {
+            border-bottom-color: #f59e0b;
+            color: #f59e0b;
+            font-weight: 600;
+        }
+        
+        .category-tab:hover {
+            color: #f59e0b;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-utensils text-3xl text-primary mr-3"></i>
+                        <h1 class="text-2xl font-bold text-gray-800">Delicious</h1>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'customer:menu' %}" class="text-gray-700 hover:text-primary smooth-transition px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-home mr-1"></i> Menu
+                    </a>
+                    <a href="{% url 'customer:track_order' %}" class="text-gray-700 hover:text-primary smooth-transition px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-search mr-1"></i> Track Order
+                    </a>
+                    
+                    <!-- Cart Icon -->
+                    <a href="{% url 'customer:cart' %}" class="relative text-gray-700 hover:text-primary smooth-transition px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-shopping-cart text-lg"></i>
+                        <span id="cart-badge" class="absolute -top-2 -right-2 bg-secondary text-white rounded-full text-xs w-6 h-6 flex items-center justify-center cart-badge">
+                            {{ cart_items_count|default:0 }}
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        <!-- Messages -->
+        {% if messages %}
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} bg-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-100 border border-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-400 text-{% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% else %}blue{% endif %}-700 px-4 py-3 rounded relative mb-4 fade-in-up">
+                        <span class="block sm:inline">{{ message }}</span>
+                        <button type="button" class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.style.display='none';">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-utensils text-2xl text-primary mr-2"></i>
+                        <h3 class="text-xl font-bold">Delicious</h3>
+                    </div>
+                    <p class="text-gray-400">Serving delicious food with love since 2020. Experience the finest dining with our carefully crafted menu.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Contact Info</h4>
+                    <div class="space-y-2 text-gray-400">
+                        <p><i class="fas fa-map-marker-alt mr-2"></i> 123 Restaurant Street, Food City</p>
+                        <p><i class="fas fa-phone mr-2"></i> +1 (555) 123-4567</p>
+                        <p><i class="fas fa-envelope mr-2"></i> info@delicious.com</p>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Opening Hours</h4>
+                    <div class="space-y-2 text-gray-400">
+                        <p>Monday - Friday: 10:00 AM - 10:00 PM</p>
+                        <p>Saturday - Sunday: 9:00 AM - 11:00 PM</p>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-4 text-center text-gray-400">
+                <p>&copy; 2024 Delicious Restaurant. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Update cart info
+        function updateCartInfo() {
+            fetch('{% url "customer:cart_info" %}')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('cart-badge').textContent = data.cart_items_count;
+                });
+        }
+
+        // Add to cart function
+        function addToCart(menuItemId, quantity = 1) {
+            fetch('{% url "customer:add_to_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    menu_item_id: menuItemId,
+                    quantity: quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateCartInfo();
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error adding item to cart', 'error');
+            });
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `fixed top-20 right-4 z-50 bg-${type === 'success' ? 'green' : 'red'}-100 border border-${type === 'success' ? 'green' : 'red'}-400 text-${type === 'success' ? 'green' : 'red'}-700 px-4 py-3 rounded shadow-lg fade-in-up`;
+            alertDiv.innerHTML = `
+                <span class="block sm:inline">${message}</span>
+                <button type="button" class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.remove();">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+        // Initialize cart info on page load
+        document.addEventListener('DOMContentLoaded', updateCartInfo);
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
